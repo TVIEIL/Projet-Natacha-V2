@@ -117,35 +117,38 @@ source ~/.bashrc
 
 👂 L'Oreille (Nœud STT & Audio)
 
-    Création et activation de l'environnement :
+  1.  Création et activation de l'environnement :
 
-Bash
+```Bash
 
 conda create -n oreille_natacha python=3.11 -y
 conda activate oreille_natacha
+```
 
-    Clonage et installation des dépendances :
+  2.  Clonage et installation des dépendances :
 
-Bash
+```Bash
 
 git clone [https://github.com/TVIEIL/-Projet-Natacha-Cluster-IA-Distribu-Multi-Backend.git](https://github.com/TVIEIL/-Projet-Natacha-Cluster-IA-Distribu-Multi-Backend.git) Natacha-Project
 cd ~/Natacha-Project/modules/ear
 
 conda install -c conda-forge pyaudio -y
 pip install -r requirements.txt
+```
 
-    Calibrage Audio et Configuration :
+ 3.   Calibrage Audio et Configuration :
     Branchez votre micro-casque et lancez :
 
-Bash
+```Bash
 
 python3 setup_audio.py
+```
 
 Copiez et remplissez vos identifiants dans secrets_natacha.py.
 
-    Service Systemd (Mode Utilisateur) :
+4.  Service Systemd (Mode Utilisateur) :
 
-Bash
+```Bash
 
 mkdir -p ~/.config/systemd/user/
 cat << EOF > ~/.config/systemd/user/oreille_natacha.service
@@ -169,12 +172,13 @@ EOF
 systemctl --user daemon-reload
 systemctl --user enable oreille_natacha.service
 systemctl --user start oreille_natacha.service
+```
 
 🧠 Le Cerveau (Nœud Cognitif & LLM)
 
-    Installation de llama.cpp (Intel Core i5) :
+  1.  Installation de llama.cpp (Intel Core i5) :
 
-Bash
+```Bash
 
 cd ~
 git clone [https://github.com/ggerganov/llama.cpp](https://github.com/ggerganov/llama.cpp)
@@ -182,26 +186,29 @@ cd llama.cpp
 mkdir build && cd build
 cmake ..
 cmake --build . --config Release
+```
 
-    Téléchargement du Modèle (OpenHermes 2.5) :
+  2.  Téléchargement du Modèle (OpenHermes 2.5) :
 
-Bash
+```Bash
 
 mkdir ~/modeles_natacha
 cd ~/modeles_natacha
 wget [https://huggingface.co/TheBloke/OpenHermes-2.5-Mistral-7B-GGUF/resolve/main/openhermes-2.5-mistral-7b.Q4_K_M.gguf](https://huggingface.co/TheBloke/OpenHermes-2.5-Mistral-7B-GGUF/resolve/main/openhermes-2.5-mistral-7b.Q4_K_M.gguf)
+```
 
-    Environnement Python du Cerveau :
+  3.  Environnement Python du Cerveau :
 
-Bash
+```Bash
 
 conda create -n cerveau_natacha python=3.11 -y
 conda activate cerveau_natacha
 pip install -r ~/Natacha-Project/modules/brain/requirements.txt
+```
 
-    Service Systemd du Cerveau :
+  4.  Service Systemd du Cerveau :
 
-Bash
+```Bash
 
 cat << EOF > ~/.config/systemd/user/natacha-brain.service
 [Unit]
@@ -231,36 +238,40 @@ EOF
 systemctl --user daemon-reload
 systemctl --user enable natacha-brain.service
 systemctl --user start natacha-brain.service
+```
 
 👄 La Bouche (Nœud Synthèse Vocale - XTTS v2)
 
 La Bouche utilise désormais XTTS v2 propulsé par PyTorch avec accélération CUDA.
 
-    Environnement Conda dédié (bouche_natacha) :
+  1.  Environnement Conda dédié (bouche_natacha) :
 
-Bash
+```Bash
 
 conda create -n bouche_natacha python=3.10 -y
 conda activate bouche_natacha
+```
 
-    Installation de PyTorch (CUDA 12.1) :
+ 2.   Installation de PyTorch (CUDA 12.1) :
 
-Bash
+```Bash
 
 pip install "torch==2.5.1+cu121" "torchaudio==2.5.1+cu121" "torchvision==0.20.1+cu121" --index-url [https://download.pytorch.org/whl/cu121](https://download.pytorch.org/whl/cu121)
+```
 
-    Dépendances et versions figées (requirements.txt) :
+  3.  Dépendances et versions figées (requirements.txt) :
 
-Bash
+```Bash
 
 cd ~/Natacha-Project/modules/mouth
 pip install -r requirements.txt
+```
 
 (Le requirements.txt inclut transformers==4.40.0, TTS==0.22.0, numpy==1.22.0, networkx==2.8.8 et setuptools==70.0.0)
 
-    Service Systemd de la Bouche :
+ 4.   Service Systemd de la Bouche :
 
-Bash
+```Bash
 
 mkdir -p ~/.config/systemd/user/
 cat << EOF > ~/.config/systemd/user/bouche_natacha.service
@@ -284,50 +295,52 @@ EOF
 systemctl --user daemon-reload
 systemctl --user enable bouche_natacha.service
 systemctl --user start bouche_natacha.service
+```
 
 📊 Natacha - Dashboard (Supervision)
 
 Le Dashboard offre une vue centralisée et en temps réel de l'état de santé du cluster, des services et des flux MQTT.
 
-    Accès et lancement :
+  1.  Accès et lancement :
     Le module se trouve dans le dossier modules/dashboard/ et s'appuie sur un environnement web léger.
 
-Bash
+```Bash
 
 cd ~/Natacha-Project/modules/dashboard
 pip install -r requirements.txt
 python3 app.py
+```
 
 📡 Topologie des Flux MQTT & Réseau
 
-    natacha/question 📥 Réception du texte de l'Oreille vers le Cerveau.
+   * natacha/question 📥 Réception du texte de l'Oreille vers le Cerveau.
 
-    natacha/reponse 📤 Envoi de la réponse (phrase par phrase) vers la Bouche.
+   * natacha/reponse 📤 Envoi de la réponse (phrase par phrase) vers la Bouche.
 
-    natacha/apprendre 💾 Mémorisation d'une nouvelle connaissance (ChromaDB).
+   * natacha/apprendre 💾 Mémorisation d'une nouvelle connaissance (ChromaDB).
 
-    Broker MQTT & Kiwix : Déportés sur le serveur de communication dédié du réseau local.
+   * Broker MQTT & Kiwix : Déportés sur le serveur de communication dédié du réseau local.
 
 📚 Base de Connaissances (Kiwix)
 
 Pour alimenter la base de connaissances locale (RAG) sur le serveur dédié :
 
-    Fichier préconisé : wikipedia_fr_physics_maxi_2026-04.zim (ou version plus récente).
+   * Fichier préconisé : wikipedia_fr_physics_maxi_2026-04.zim (ou version plus récente).
 
-    Téléchargement : https://download.kiwix.org/zim/wikipedia/
+   * Téléchargement : https://download.kiwix.org/zim/wikipedia/
 
 📦 Remerciements & Dépendances Clés
 
-    coqui-ai/TTS (XTTS v2) - Synthèse vocale neuronale avancée avec clonage de voix.
+   * coqui-ai/TTS (XTTS v2) - Synthèse vocale neuronale avancée avec clonage de voix.
 
-    ggerganov/llama.cpp - Inférence LLM locale ultra-rapide.
+   * ggerganov/llama.cpp - Inférence LLM locale ultra-rapide.
 
-    openai/whisper / Faster-Whisper - Transcription STT.
+   * openai/whisper / Faster-Whisper - Transcription STT.
 
-    Eclipse Paho MQTT - Messagerie asynchrone du cluster.
+   * Eclipse Paho MQTT - Messagerie asynchrone du cluster.
 
-    chroma-core/chroma - Mémoire vectorielle à long terme.
+   * chroma-core/chroma - Mémoire vectorielle à long terme.
 
-    Google Gemini - Co-développeur IA pour l'architecture, le débogage et la documentation.
+   * Google Gemini - Co-développeur IA pour l'architecture, le débogage et la documentation.
 
 Développé par Thierry VIEIL - 2026
