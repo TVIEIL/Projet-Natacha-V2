@@ -1,0 +1,33 @@
+--- Sécurité Natacha ---
+
+Ne JAMAIS uploader ces fichiers qui contiennent des mots de passe (comme ton dictionnaire CREDS)
+
+CREDS.py
+config_privee.py
+secrets.env
+.env
+
+--- Python ---
+
+pycache/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env
+
+--- Système et Logs ---
+
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+--- Données IA ---
+**/memoire_chroma/
+**/*.log
+**/.env
+
+*.gguf
+*.bin
+models/

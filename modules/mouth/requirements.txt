@@ -1,0 +1,19 @@
+# --- Cœur PyTorch & CUDA ---
+torch==2.5.1+cu121
+torchaudio==2.5.1+cu121
+torchvision==0.20.1+cu121
+
+# --- Modèles & IA ---
+transformers==4.40.0
+TTS==0.22.0
+trainer==0.0.36
+
+# --- Bibliothèques scientifiques & contraintes de version ---
+numpy==1.22.0
+networkx==2.8.8
+setuptools==70.0.0
+
+# --- Communication & Environnement ---
+paho-mqtt==2.1.0
+python-dotenv==1.2.3
+Flask==3.1.3

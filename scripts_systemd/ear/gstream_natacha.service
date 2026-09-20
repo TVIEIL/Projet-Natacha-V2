@@ -1,0 +1,17 @@
+[Unit]
+Description=GStreamer Receiver pour Natacha (Bouche)
+After=network.target
+
+[Service]
+Type=simple
+# Définit automatiquement le dossier de travail dans votre Home
+WorkingDirectory=/home/vieil/Natacha-Project/modules/ear
+
+# Utilise l'environnement Conda oreille_natacha pour lancer le récepteur
+ExecStart=/home/vieil/miniconda3/envs/oreille_natacha/bin/python3 %h/Natacha-Project/modules/ear/bouche_receveur_final_v1_0.py
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,12 @@
+# --- Noyau Intelligence & Réseau ---
+requests
+paho-mqtt>=2.0.0
+
+# --- Base de données & Mémoire (RAG) ---
+chromadb
+
+# --- Gestion de la Configuration ---
+python-dotenv
+
+# --- module feedparser permet de lire et décoder des flux RSS ---
+feedparser

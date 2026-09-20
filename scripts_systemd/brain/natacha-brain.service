@@ -1,0 +1,42 @@
+# Copyright 2026 Thierry VIEIL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[Unit]
+Description=Cerveau de Natacha - Serveur Llama.cpp
+After=network.target
+
+[Service]
+# On supprime User et Group car c'est un service --user
+LimitMEMLOCK=infinity
+WorkingDirectory=/home/vieil/llama.cpp
+
+ExecStart=/home/vieil/llama.cpp/build/bin/llama-server \
+    -m %h/modeles_natacha/openhermes-2.5-mistral-7b.Q4_K_M.gguf \
+    --ctx-size 2048 \
+    --threads 12 \
+    --flash-attn on \
+    --mlock \
+    --host 127.0.0.1 \
+    --port 8000
+
+Restart=always
+RestartSec=10
+
+# Gestion de la mémoire
+MemoryMax=16G
+MemoryHigh=15G
+
+[Install]
+# Indispensable pour le mode --user
+WantedBy=default.target

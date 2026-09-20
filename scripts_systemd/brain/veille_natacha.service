@@ -1,0 +1,37 @@
+# Copyright 2026 Thierry VIEIL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[Unit]
+Description=Oreille de Natacha (Whisper)
+After=network.target pulseaudio.service
+...
+
+[Unit]
+Description=Veille Automatique de Natacha (RSS)
+After=network.target mosquitto.service
+
+[Service]
+Type=simple
+User=vieil
+# Correction : On pointe vers le dossier où se trouve ton code
+WorkingDirectory=/home/vieil/Natacha-Project/modules/brain
+
+# Correction : On utilise l'env Conda et le bon chemin vers le script
+ExecStart=/home/vieil/miniconda3/envs/cerveau_natacha/bin/python3 %h/Natacha-Project/modules/brain/veille_natacha.py
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

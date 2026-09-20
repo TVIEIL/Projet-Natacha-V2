@@ -1,0 +1,30 @@
+[Unit]
+Description=NatachaMouth Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Environment="XDG_RUNTIME_DIR=/run/user/1000"
+Environment="PULSE_SERVER=unix:/run/user/1000/pulse/native"
+Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
+#User=vieil
+#Group=vieil
+# On donne le chemin complet
+WorkingDirectory=/home/vieil/Natacha-Project/modules/mouth
+Environment=PYTHONUNBUFFERED=1
+
+
+# On désactive les protections qui bloquent souvent l'accès aux dossiers home
+ProtectHome=false
+ProtectSystem=false
+PrivateTmp=false
+
+# L'astuce cruciale : on utilise le binaire complet, 
+# systemd n'a pas besoin de "d'activer" conda
+ExecStart=/home/vieil/miniconda3/envs/bouche_natacha/bin/python main.py
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

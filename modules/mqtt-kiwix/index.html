@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Natacha - MQTT Monitor</title>
+    <script src="paho-mqtt.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #e0e0e0; margin: 0; padding: 20px; }
+        h1 { color: #4CAF50; }
+        #status { font-weight: bold; margin-bottom: 15px; }
+        .connected { color: #4CAF50; }
+        .disconnected { color: #F44336; }
+        
+        /* Style de la zone de saisie */
+        #input-container { margin-bottom: 15px; display: flex; gap: 10px; }
+        #question-input { flex-grow: 1; padding: 10px; background: #1e1e1e; border: 1px solid #333; color: #fff; border-radius: 4px; font-size: 14px; }
+        #send-btn { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #send-btn:hover { background: #45a049; }
+
+        #messages { background: #1e1e1e; border: 1px solid #333; padding: 15px; height: 350px; overflow-y: scroll; font-family: monospace; border-radius: 5px; }
+        .msg { margin-bottom: 8px; border-bottom: 1px solid #2a2a2a; padding-bottom: 4px; }
+        .topic { color: #64B5F6; font-weight: bold; }
+        .payload { color: #81C784; }
+    </style>
+</head>
+<body>
+
+    <h1>🌐 Natacha - Dashboard MQTT Local</h1>
+    <div id="status" class="disconnected">État : Connexion en cours...</div>
+    
+    <!-- Zone de saisie pour envoyer une question -->
+    <div id="input-container">
+        <input type="text" id="question-input" placeholder="Posez une question à Natacha (ex: Natacha, racontes-moi une blague)..." onkeypress="checkEnter(event)">
+        <button id="send-btn" onclick="sendQuestion()">Envoyer</button>
+    </div>
+
+    <h3>Flux des messages en direct (natacha/#) :</h3>
+    <div id="messages"></div>
+
+    <script>
+        let client;
+
+        window.onload = function() {
+            const brokerHost = window.location.hostname || "192.168.1.80";
+            const brokerPort = 9001;
+            const clientId = "natacha_web_monitor_" + Math.random().toString(16).substring(2, 8);
+
+            console.log(`Connexion à ws://${brokerHost}:${brokerPort} ...`);
+            
+            client = new Paho.Client(brokerHost, Number(brokerPort), clientId);
+
+            client.onConnectionLost = function (responseObject) {
+                document.getElementById("status").className = "disconnected";
+                document.getElementById("status").innerText = "État : Déconnecté (" + responseObject.errorMessage + ")";
+                setTimeout(connectMQTT, 4000);
+            };
+
+            client.onMessageArrived = function (message) {
+                let container = document.getElementById("messages");
+                let time = new Date().toLocaleTimeString();
+                let html = `<div class="msg">[${time}] <span class="topic">${message.destinationName}</span> : <span class="payload">${escapeHtml(message.payloadString)}</span></div>`;
+                container.innerHTML += html;
+                container.scrollTop = container.scrollHeight;
+            };
+
+            function connectMQTT() {
+                client.connect({
+                    onSuccess: function () {
+                        document.getElementById("status").className = "connected";
+                        document.getElementById("status").innerText = "État : Connecté au broker Mosquitto (" + brokerHost + ":" + brokerPort + ")";
+                        client.subscribe("natacha/#");
+                    },
+                    onFailure: function (message) {
+                        document.getElementById("status").className = "disconnected";
+                        document.getElementById("status").innerText = "État : Échec de connexion (" + message.errorMessage + ")";
+                        setTimeout(connectMQTT, 4000);
+                    },
+                    useSSL: false
+                });
+            }
+
+            connectMQTT();
+        };
+
+        // Fonction pour envoyer le message sur le topic natacha/question
+        function sendQuestion() {
+            let input = document.getElementById("question-input");
+            let text = input.value.trim();
+            
+            if (text !== "" && client && client.isConnected()) {
+                let message = new Paho.Message(text);
+                message.destinationName = "natacha/question";
+                client.send(message);
+                
+                // Vide le champ de saisie après l'envoi
+                input.value = "";
+            } else if (!client || !client.isConnected()) {
+                alert("Erreur : Non connecté au broker MQTT !");
+            }
+        }
+
+        // Permet d'envoyer en appuyant sur la touche "Entrée"
+        function checkEnter(event) {
+            if (event.key === "Enter") {
+                sendQuestion();
+            }
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>

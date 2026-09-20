@@ -1,0 +1,13 @@
+[Unit]
+Description=Natacha Local MQTT Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=vieil
+WorkingDirectory=/home/vieil/Natacha-Project/modules/mqtt-kiwix
+ExecStart=/usr/bin/python3 -m http.server 8090
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
