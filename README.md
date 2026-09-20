@@ -1,4 +1,4 @@
-# -Projet-Natacha-Cluster-IA-Distribu-Multi-Backend
+# Projet-Natacha-Cluster-IA-Distribu-Multi-Backend    XTTS V2 et Natacha Dashboard
 
 ![Schéma de l'Architecture Natacha](assets/architecture-natacha.png)
 
