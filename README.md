@@ -90,7 +90,7 @@ Le projet utilise les accélérateurs matériels disponibles :
 | **Intel ULTRA** | Core Ultra 9 285H / 16Go RAM | Cerveau (Inférence LLM ultra-rapide) |
 | **Intel Core** | Intel Core i5 14th gen (AVX-512) / 32 Go RAM | Oreille (medium-Whisper STT) |
 | **Intel Core** | Intel Core i9 9880H / GTX 1650 4Go (CUDA) / 16 Go RAM | Bouche (`XTTS v2` - Synthèse Vocale) |
-| **AMD Ryzen 7 5800U** | Mosquitto MQTT & Kiwix-serve | Communication & Base Documentaire ZIM |
+| **AMD Ryzen 7 5800U** | Mosquitto MQTT & Kiwix-server | Communication & Base Documentaire ZIM |
 
 &nbsp;
 
