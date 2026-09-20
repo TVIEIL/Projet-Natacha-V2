@@ -1,6 +1,6 @@
 # Natacha IA Multi-Backend  avec  XTTS V2 et Natacha Dashboard
 
-![Architecture Natacha V2](docs/architecture_natacha_v2.jpg)
+![Architecture Natacha V2](assets/architecture_NatachaV2.jpeg)
 
 Natacha est un assistant personnel modulaire conçu pour fonctionner sur un cluster de machines hétérogènes. Contrairement aux solutions monolithiques, Natacha fragmente l'intelligence (Cerveau, Oreille, Bouche, Dashboard et Serveur de Communication/Savoir) pour exploiter le meilleur de chaque architecture matérielle (Intel Core, AMD Ryzen, Rockchip SBC). 
 
