@@ -67,7 +67,7 @@ https://youtube.com/watch?v=ivVGWKrNOFM&is=WevjTCej9jadv8qc
 
 ​Les Piliers du Cluster
 
-​L'Oreille (Transcription) : Capture audio et conversion STT (Speech-To-Text) via Faster-Whisper.
+​L'Oreille (Transcription) : Capture audio et conversion STT (Speech-To-Text) via medium-Whisper.
 
 ​Le Cerveau (Inférence) : LLM local (`llama.cpp`) pour le raisonnement, la gestion des commandes et ChromaDB.
 
