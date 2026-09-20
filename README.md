@@ -182,7 +182,7 @@ systemctl --user start oreille_natacha.service
 
 🧠 Le Cerveau (Nœud Cognitif & LLM)
 
-  1.  Installation de llama.cpp (Intel Core i5) :
+  1.  Installation de llama.cpp (Intel Core ULTRA 9) :
 
 ```Bash
 
