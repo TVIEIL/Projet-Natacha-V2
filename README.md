@@ -69,6 +69,8 @@ https://youtube.com/watch?v=ivVGWKrNOFM&is=WevjTCej9jadv8qc
 
 ​L'Oreille (Transcription) : Capture audio et conversion STT (Speech-To-Text) via medium-Whisper.
 
+![Oreille Natacha](assets/oreille_natacha_v1_30.png)
+
 ​Le Cerveau (Inférence) : LLM local (`llama.cpp`) pour le raisonnement, la gestion des commandes et ChromaDB.
 
 ​La Bouche (Synthèse Vocale) : `XTTS v2` sous PyTorch/CUDA pour une synthèse vocale ultra-réaliste avec clonage de voix et sortie audio physique.
