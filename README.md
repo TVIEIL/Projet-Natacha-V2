@@ -146,6 +146,8 @@ pip install -r requirements.txt
 python3 setup_audio.py
 ```
 
+![Setup Audio](assets/setup_audio.png)
+
 Copiez et remplissez vos identifiants dans secrets_natacha.py.
 
 4.  Service Systemd (Mode Utilisateur) :
