@@ -69,7 +69,7 @@ https://youtube.com/watch?v=ivVGWKrNOFM&is=WevjTCej9jadv8qc
 
 ​L'Oreille (Transcription) : Capture audio et conversion STT (Speech-To-Text) via medium-Whisper.
 
-![Oreille Natacha](assets/oreille_natacha_v1_30.png)
+![Oreille Natacha](assets/oreille_natacha_v_1_30.png)
 
 ​Le Cerveau (Inférence) : LLM local (`llama.cpp`) pour le raisonnement, la gestion des commandes et ChromaDB.
 
