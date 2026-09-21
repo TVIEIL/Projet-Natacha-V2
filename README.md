@@ -118,7 +118,9 @@ chmod +x install.sh
 ./install.sh
 ```
 
-### 1. Installation de Miniconda3 (Commun à tous les nœuds)
+
+
+### 1. Installation manuelle de Miniconda3 (Commun à tous les nœuds)
 
 Si Miniconda n'est pas encore présent sur votre système :
 
