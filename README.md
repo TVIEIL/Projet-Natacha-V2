@@ -102,6 +102,22 @@ Le projet utilise les accélérateurs matériels disponibles :
 
 Le projet Natacha est développé et optimisé pour Ubuntu 24.04 LTS. L'utilisation de cette version garantit la stabilité des flux audio et la gestion correcte des environnements Conda.
 
+🚀 Installation Rapide (Recommandé)
+
+Si votre système est prêt, vous pouvez installer automatiquement le module de votre choix (Oreille, Cerveau ou Bouche) grâce au script d'installation unifié. Ce script s'occupe de créer l'environnement Conda, d'installer les dépendances APT/Pip et de configurer le service systemd.
+
+```bash
+# 1. Cloner le dépôt dans le dossier Natacha-Project
+git clone https://github.com/TVIEIL/-Projet-Natacha-Cluster-IA-Distribu-Multi-Backend.git Natacha-Project
+
+# 2. Accéder au dossier
+cd ~/Natacha-Project
+
+# 3. Rendre le script exécutable et lancer l'installation
+chmod +x install.sh
+./install.sh
+```
+
 ### 1. Installation de Miniconda3 (Commun à tous les nœuds)
 
 Si Miniconda n'est pas encore présent sur votre système :
