@@ -108,7 +108,7 @@ Si votre système est prêt, vous pouvez installer automatiquement le module de 
 
 ```bash
 # 1. Cloner le dépôt dans le dossier Natacha-Project
-git clone https://github.com/TVIEIL/-Projet-Natacha-Cluster-IA-Distribu-Multi-Backend.git Natacha-Project
+git clone https://github.com/TVIEIL/Projet-Natacha-V2.git Natacha-Project
 
 # 2. Accéder au dossier
 cd ~/Natacha-Project
