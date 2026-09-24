@@ -333,8 +333,7 @@ Le Dashboard offre une vue centralisée et en temps réel de l'état de santé d
 ```Bash
 
 cd ~/Natacha-Project/modules/dashboard
-pip install -r requirements.txt
-python3 app.py
+
 ```
 
 📡 Topologie des Flux MQTT & Réseau
