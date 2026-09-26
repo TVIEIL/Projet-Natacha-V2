@@ -31,6 +31,7 @@ import queue
 import uuid
 import wave
 import contextlib
+import re
 
 START_TIME = time.time()
 processing_flag = False
@@ -54,6 +55,23 @@ class Config:
 
 os.makedirs(Config.DATA_IN_DIR, exist_ok=True)
 audio_queue = queue.Queue()
+
+def sanitize_text_for_tts(text: str) -> str:
+    # 1. Autorise uniquement :
+    #    - a-z, A-Z, 0-9
+    #    - Accents français : àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ
+    #    - Ponctuation et symboles math de base : . , ? ! : ; - ' " ( ) + = / %
+    #    - Les espaces
+    cleaned = re.sub(
+        r"[^a-zA-Z0-9àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ\s.,?!:;\-'\"()+=/%]",
+        " ",
+        text,
+    )
+
+    # 2. Nettoie les espaces multiples
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+    return cleaned
 
 def get_wav_duration(fname):
     """Calcule la durée précise du fichier audio en secondes."""
