@@ -175,9 +175,11 @@ def on_message_OLD(client, userdata, msg):
     print(f"\n--- Début génération : '{text}' ---")
     filename = f"audio_{uuid.uuid4().hex}.wav"
     filepath = os.path.join(Config.DATA_IN_DIR, filename)
+
+    clean_text = sanitize_text_for_tts(text)
     
     tts.tts_to_file(
-    text=text,
+    text=clean_text,
     file_path=filepath,
     speaker_wav=Config.SPEAKER_WAV,
     language="fr",
