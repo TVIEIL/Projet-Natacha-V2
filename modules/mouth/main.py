@@ -59,7 +59,7 @@ audio_queue = queue.Queue()
 def sanitize_text_for_tts(text: str) -> str:
     # 1. Autorise uniquement :
     #    - a-z, A-Z, 0-9
-    #    - Accents français : àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ
+    #    - Accents: àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ
     #    - Ponctuation et symboles math de base : . , ? ! : ; - ' " ( ) + = / %
     #    - Les espaces
     cleaned = re.sub(
@@ -86,7 +86,7 @@ def get_wav_duration(fname):
         return 0
 
 def worker_audio():
-    """Thread de lecture : Stream vers le KickPi via GStreamer."""
+    """Thread de lecture : Stream vers l oreille via GStreamer."""
     while True:
         file_path = audio_queue.get()
         if file_path is None: break 
@@ -111,7 +111,7 @@ def worker_audio():
         except Exception as e:
             print(f"Erreur lors du streaming : {e}")
         finally:
-            # On ne supprime le fichier QUE s'il ne s'agit pas de "traitement_en_cours.wav"
+            # On ne supprime le fichier que s'il ne s'agit pas de "traitement_en_cours.wav"
             if "traitement_en_cours.wav" not in file_path:
                 if os.path.exists(file_path):
                     os.remove(file_path)
