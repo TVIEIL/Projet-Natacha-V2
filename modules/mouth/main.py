@@ -155,7 +155,7 @@ def on_message(client, userdata, msg):
     top_p=0.85,
     gpt_cond_len=30,)
 
-        audio_queue.put(filepath)
+    audio_queue.put(filepath)
 
             
 def on_message_DEBUG(client, userdata, msg):
