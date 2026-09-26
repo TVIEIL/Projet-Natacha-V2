@@ -142,7 +142,18 @@ def on_message(client, userdata, msg):
         filename = f"audio_{uuid.uuid4().hex}.wav"
         filepath = os.path.join(Config.DATA_IN_DIR, filename)
         
-        tts.tts_to_file(text=payload, file_path=filepath, speaker_wav=Config.SPEAKER_WAV, language="fr")
+   clean_text = sanitize_text_for_tts(text)
+    
+    tts.tts_to_file(
+    text=clean_text,
+    file_path=filepath,
+    speaker_wav=Config.SPEAKER_WAV,
+    language="fr",
+    temperature=0.65,
+    repetition_penalty=2.5,
+    top_k=50,
+    top_p=0.85,
+    gpt_cond_len=30,)
         audio_queue.put(filepath)
 
             
