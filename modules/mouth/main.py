@@ -18,7 +18,6 @@
 # PROJET NATACHA - Natacha Mouth-XTTS-V2
 # ==============================================================================
 
-
 import os
 import re
 import time
@@ -37,15 +36,14 @@ from TTS.api import TTS
 import numpy as np
 from scipy.io import wavfile
 
-START_TIME = time.time()
-processing_flag = False
+import base64
+import json
 
+START_TIME = time.time()
 
 # 1. Configuration
 load_dotenv()
 
-
-# Configuration centralisée
 class Config:
     MQTT_BROKER = os.getenv("MQTT_BROKER", "192.168.1.100")
     MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
@@ -61,15 +59,34 @@ os.makedirs(Config.DATA_IN_DIR, exist_ok=True)
 audio_queue = queue.Queue()
 
 
+def envoyer_audio_dashboard(client_mqtt, file_path):
+    """Lit un fichier WAV, le convertit en Base64 et l'envoie sur MQTT."""
+    try:
+        if not os.path.exists(file_path):
+            return
+
+        with open(file_path, "rb") as f:
+            audio_encoded = base64.b64encode(f.read()).decode("utf-8")
+
+        payload = json.dumps({
+            "filename": os.path.basename(file_path),
+            "mime": "audio/wav",
+            "data": audio_encoded
+        })
+
+        client_mqtt.publish("natacha/dashboard/audio", payload, qos=0)
+        print(f"📡 Audio envoyé au dashboard via MQTT ({len(audio_encoded) // 1024} Ko)")
+
+    except Exception as e:
+        print(f"⚠️ Erreur lors de l'envoi Base64 MQTT : {e}")
+
+
 def remove_pop(file_path, fade_in_ms=60, fade_out_ms=20):
-    """Applique un micro fondu en entrée (fade-in) et en sortie (fade-out)
-    pour supprimer les clics au début et à la fin du fichier WAV.
-    """
+    """Applique un micro fondu en entrée (fade-in) et en sortie (fade-out)."""
     try:
         sample_rate, data = wavfile.read(file_path)
         total_samples = len(data)
         
-        # 1. Traitement du fondu en entrée (Fade-in / Attaque)
         fade_in_len = int(sample_rate * (fade_in_ms / 1000.0))
         if total_samples > fade_in_len and fade_in_len > 0:
             fade_in = np.linspace(0.0, 1.0, fade_in_len)
@@ -78,7 +95,6 @@ def remove_pop(file_path, fade_in_ms=60, fade_out_ms=20):
             else:
                 data[:fade_in_len, :] = (data[:fade_in_len, :] * fade_in[:, None]).astype(data.dtype)
 
-        # 2. Traitement du fondu en sortie (Fade-out / Chute)
         fade_out_len = int(sample_rate * (fade_out_ms / 1000.0))
         if total_samples > fade_out_len and fade_out_len > 0:
             fade_out = np.linspace(1.0, 0.0, fade_out_len)
@@ -87,30 +103,20 @@ def remove_pop(file_path, fade_in_ms=60, fade_out_ms=20):
             else:
                 data[-fade_out_len:, :] = (data[-fade_out_len:, :] * fade_out[:, None]).astype(data.dtype)
 
-        # Réécriture du fichier corrigé
         wavfile.write(file_path, sample_rate, data)
         
     except Exception as e:
         print(f"⚠️ Erreur lors du nettoyage de l'audio ({file_path}): {e}")
 
 
-
 def sanitize_text_for_tts(text: str) -> str:
-    # 1. Autorise uniquement :
-    #    - a-z, A-Z, 0-9
-    #    - Accents: àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ
-    #    - Ponctuation et symboles math de base : . , ? ! : ; - ' " ( ) + = / %
-    #    - Les espaces
     cleaned = re.sub(
         r"[^a-zA-Z0-9àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ\s.,?!:;\-'\"()+=/%]",
         " ",
         text,
     )
+    return re.sub(r"\s+", " ", cleaned).strip()
 
-    # 2. Nettoie les espaces multiples
-    cleaned = re.sub(r"\s+", " ", cleaned).strip()
-
-    return cleaned
 
 def get_wav_duration(fname):
     """Calcule la durée précise du fichier audio en secondes."""
@@ -124,8 +130,11 @@ def get_wav_duration(fname):
         print(f"⚠️ Erreur lecture durée WAV : {e}")
         return 0
 
+
 def worker_audio():
-    """Thread de lecture : Stream UDP vers le nœud Oreille via GStreamer."""
+    """Thread unique de lecture : traite la queue de manière 100% séquentielle."""
+    global client
+    
     while True:
         file_path = audio_queue.get()
         if file_path is None:
@@ -133,172 +142,83 @@ def worker_audio():
         
         try:
             duree = get_wav_duration(file_path)
-            print(f"⏳ Durée : {duree:.2f}s. Envoi vers Oreille ({Config.OREILLE_IP})...")
-
-            # Pipeline UDP stabilisé :
-            # - audiorate garantit un flux temporellement régulier
-            # - sync=true force le respect de l'horloge temps réel
+            
+            # 1. Publication MQTT unique au dashboard
+            envoyer_audio_dashboard(client, file_path)
+            
+            print(f"⏳ Durée : {duree:.2f}s. Streaming UDP vers Oreille ({Config.OREILLE_IP})...")
+            
+            # 2. Pipeline GStreamer rythmé en temps réel
             send_cmd = [
                 "gst-launch-1.0", "-q",
                 "filesrc", f"location={file_path}", "!",
                 "wavparse", "!",
                 "audioconvert", "!",
                 "audioresample", "!",
-                "audiorate", "!",  # Régule le débit pour éviter la perte de paquets au départ
-                "audio/x-raw,rate=22050,channels=1,format=S16LE", "!",
-                "udpsink", f"host={Config.OREILLE_IP}", "port=5000", "sync=true"
+                "audio/x-raw,format=S16LE,channels=1,rate=22050,layout=interleaved", "!",
+                "identity", "sync=true", "!",
+                "udpsink", f"host={Config.OREILLE_IP}", "port=5000", "sync=false"
             ]
             
-            # Exécution directe sans shell=True
             subprocess.run(send_cmd, check=True)
             
-            # Pause de sécurité et nettoyage
-            time.sleep(0.2)
-            print("✨ Lecture terminée sur l'oreille. Prêt.")
-            
+            # Pause de 150ms pour laisser respirer le socket entre deux phrases
+            time.sleep(0.15)
+
         except Exception as e:
-            print(f"⚠️ Erreur lors du streaming : {e}")
+            print(f"⚠️ Erreur worker_audio : {e}")
         finally:
-            if "traitement_en_cours.wav" not in file_path:
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-            
             audio_queue.task_done()
 
-def OLD_worker_audio():
-    """Thread de lecture : Stream vers l oreille via GStreamer."""
-    while True:
-        file_path = audio_queue.get()
-        if file_path is None: break 
-        
-        try:
-            duree = get_wav_duration(file_path)
-            print(f"⏳ Durée : {duree:.2f}s. Envoi vers Oreille ({Config.OREILLE_IP})...")
-
-            # Pipeline GStreamer robuste
-            send_cmd = (
-                f'gst-launch-1.0 -q filesrc location={file_path} ! wavparse ! '
-                f'audioconvert ! audioresample ! "audio/x-raw,rate=22050,channels=1,format=S16LE" ! '
-                f'udpsink host={Config.OREILLE_IP} port=5000'
-            )
-            
-            subprocess.run(send_cmd, shell=True, check=True)
-            
-            # Pause de sécurité et nettoyage
-            time.sleep(0.2)
-            print("✨ Lecture terminée sur l'oreille. Prêt.")
-            
-        except Exception as e:
-            print(f"Erreur lors du streaming : {e}")
-        finally:
-            # On ne supprime le fichier que s'il ne s'agit pas de "traitement_en_cours.wav"
-            if "traitement_en_cours.wav" not in file_path:
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-            
-            # Quoi qu'il arrive, on marque la tâche comme terminée
-            audio_queue.task_done()
-            
 
 def on_message(client, userdata, msg):
-    # Sécurité au démarrage
     if time.time() - START_TIME < 3.0:
         return
         
     payload = msg.payload.decode('utf-8').strip()
     
-    # 2. Gestion du canal "natacha/status"
+    # Canal status
     if msg.topic == "natacha/status":
         if payload == "traitement en cours":
-            print("⏳ Natacha est en train de réfléchir...")
-            audio_queue.put("data/traitement_en_cours.wav")
+            print("⏳ Natacha réfléchit...")
+            if os.path.exists("data/traitement_en_cours.wav"):
+                audio_queue.put("data/traitement_en_cours.wav")
         return 
 
-    # 3. Gestion du canal "natacha/reponse"
+    # Canal reponse
     if msg.topic == "natacha/reponse":
-        if not payload: return
+        if not payload: 
+            return
         
         print(f"\n--- Début génération : '{payload}' ---")
         filename = f"audio_{uuid.uuid4().hex}.wav"
         filepath = os.path.join(Config.DATA_IN_DIR, filename)
-     
-    #clean_text = payload
-    clean_text = sanitize_text_for_tts(payload)
-    
-    tts.tts_to_file(
-    text=clean_text,
-    file_path=filepath,
-    speaker_wav=Config.SPEAKER_WAV,
-    language="fr",
-    # temperature=0.75,
-    # repetition_penalty=2.0,
-    # top_k=50,
-    # top_p=0.85,
-    # gpt_cond_len=30,)
+        
+        clean_text = sanitize_text_for_tts(payload)
+        
+        tts.tts_to_file(
+            text=clean_text,
+            file_path=filepath,
+            speaker_wav=Config.SPEAKER_WAV,
+            language="fr"
+        )
 
-    # Nettoyage de l'onde audio juste avant la mise en file d'attente
-    remove_pop(filepath)
+        remove_pop(filepath)
+        audio_queue.put(filepath)
 
-    audio_queue.put(filepath)
 
-            
-def on_message_DEBUG(client, userdata, msg):
-    raw_payload = msg.payload.decode('utf-8').strip()
-    print(f"DEBUG - Type : {type(raw_payload)}")
-    print(f"DEBUG - Contenu : {raw_payload}")
-    
-    # Si c'est un tableau, il faut le convertir en texte
-    if isinstance(raw_payload, list):
-        text = " ".join(raw_payload)
-    else:
-        text = raw_payload
-
-def on_message_OLD(client, userdata, msg):
-    global processing_flag
-    
-    # Gestion du statut d'attente
-    if msg.topic == "natacha/status":
-        if msg.payload.decode() == "Transmission au cerveau effectuée":
-            print("⏳ En attente du Cerveau...")
-            # On envoie un fichier "traitement_en_cours.wav" dans la file
-            audio_queue.put("data/traitement_en_cours.wav")
-        return
-
-    # Gestion de la réponse vocale 
-    text = msg.payload.decode('utf-8').strip()
-    if not text: return
-
-    print(f"\n--- Début génération : '{text}' ---")
-    filename = f"audio_{uuid.uuid4().hex}.wav"
-    filepath = os.path.join(Config.DATA_IN_DIR, filename)
-
-    clean_text = sanitize_text_for_tts(text)
-    
-    tts.tts_to_file(
-    text=clean_text,
-    file_path=filepath,
-    speaker_wav=Config.SPEAKER_WAV,
-    language="fr",
-    temperature=0.65,
-    repetition_penalty=2.5,
-    top_k=50,
-    top_p=0.85,
-    gpt_cond_len=30,)
-
-    audio_queue.put(filepath)
-
-# 1. Lancement du thread Lecteur
-threading.Thread(target=worker_audio, daemon=True).start()
-
-# 2. Initialisation XTTS
+# 1. Initialisation XTTS
 print(f"--- NatachaMouth (Bouche NVIDIA) démarrée sur : {Config.DEVICE} ---")
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(Config.DEVICE)
 
-# 3. Connexion MQTT
+# 2. Connexion MQTT
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_message = on_message
 client.connect(Config.MQTT_BROKER, Config.MQTT_PORT, 60)
 client.subscribe([("natacha/reponse", 0), ("natacha/status", 0)])
+
+# 3. UN SEUL DÉMARRAGE DU THREAD LECTEUR (après la création du client MQTT)
+threading.Thread(target=worker_audio, daemon=True).start()
 
 print(f"En écoute sur MQTT ({Config.MQTT_BROKER})...")
 
@@ -306,4 +226,4 @@ try:
     client.loop_forever()
 except KeyboardInterrupt:
     print("\nArrêt...")
-    audio_queue.put(None) # Signal pour arrêter le worker
+    audio_queue.put(None)
