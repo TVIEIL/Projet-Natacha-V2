@@ -6,7 +6,7 @@ Natacha est un assistant personnel modulaire conçu pour fonctionner sur un clus
 
 ### Comment utiliser Natacha ?
 
-​Le système dispose d'un micro-casque USB sans fil pour échanger vocalement avec Natacha. Chaque interaction s'amorce par le mot-clé d'appel, suivi de votre demande.
+​Le système dispose d'un micro-casque USB sans fil pour échanger vocalement avec Natacha. Chaque interaction s'amorce par le mot-clé d'appel "Natacha ", suivi de votre demande.
 
 ​1. Interroger les connaissances générales du modèle
 Posez une question dont la réponse est puisée directement dans les données internes du modèle :
