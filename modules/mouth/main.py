@@ -150,11 +150,12 @@ def on_message(client, userdata, msg):
     file_path=filepath,
     speaker_wav=Config.SPEAKER_WAV,
     language="fr",
-    temperature=0.65,
-    repetition_penalty=2.5,
-    top_k=50,
-    top_p=0.85,
-    gpt_cond_len=30,)
+    # temperature=0.75,
+    # repetition_penalty=2.0,
+    # top_k=50,
+    # top_p=0.85,
+    # gpt_cond_len=30,)
+
 
     audio_queue.put(filepath)
 
