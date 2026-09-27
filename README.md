@@ -118,6 +118,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
+![script install.sh](assets/install_sh.png)
 
 
 ### 1. Installation manuelle de Miniconda3 (Commun à tous les nœuds)
