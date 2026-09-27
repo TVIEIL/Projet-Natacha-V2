@@ -28,7 +28,7 @@
 #   - Capture via configuration dynamique (.env)
 #   - Transcription locale via Faster-Whisper (Modèle Medium / int8).
 #   - Analyse syntaxique d'intentions (Relance, Arrêt, Diagnostic).
-#   - Pilotage distant du cluster (Cerveau i5 / Bouche OPi 6+) via SSH & MQTT.
+#   - Pilotage distant du cluster (Cerveau Core ULTRA 9 / Bouche Intel i9) via SSH & MQTT.
 # ==============================================================================
 
 import os, time, subprocess, paramiko, pyaudio, socket, numpy as np
