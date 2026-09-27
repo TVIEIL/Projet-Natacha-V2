@@ -84,6 +84,17 @@ FORMAT = "S16LE"
 pipeline = (
     f'gst-launch-1.0 udpsrc port={PORT_UDP} buffer-size=524288 ! '
     f'"audio/x-raw,rate={STREAM_RATE},channels={CHANNELS},format={FORMAT},layout=interleaved" ! '
+    f'queue max-size-time=1000000000 min-threshold-time=50000000 leaky=2 ! '
+    f'audioconvert ! '
+    f'audioresample ! '
+    f'volume volume={NIVEAU_SONORE} ! '
+    f'{SINK} buffer-time=200000 latency-time=10000'
+)
+
+# Pipeline GStreamer
+OLD_pipeline = (
+    f'gst-launch-1.0 udpsrc port={PORT_UDP} buffer-size=524288 ! '
+    f'"audio/x-raw,rate={STREAM_RATE},channels={CHANNELS},format={FORMAT},layout=interleaved" ! '
     f'queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 ' 
     f'min-threshold-time=200000000 ! ' 
     f'rawaudioparse use-sink-caps=true ! '
