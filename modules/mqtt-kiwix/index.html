@@ -36,9 +36,42 @@
 
     <h3>Flux des messages en direct (natacha/#) :</h3>
     <div id="messages"></div>
-
-    <script>
+<script>
         let client;
+
+        // File d'attente audio et état de lecture
+        let audioQueue = [];
+        let isPlaying = false;
+
+        function processAudioQueue() {
+            if (isPlaying || audioQueue.length === 0) return;
+
+            isPlaying = true;
+            const base64Data = audioQueue.shift();
+            const audio = new Audio("data:audio/wav;base64," + base64Data);
+
+            audio.onended = function() {
+                isPlaying = false;
+                processAudioQueue();
+            };
+
+            audio.onerror = function(err) {
+                console.error("Erreur lecture audio :", err);
+                isPlaying = false;
+                processAudioQueue();
+            };
+
+            audio.play().catch(err => {
+                console.warn("⚠️ Autoplay bloqué : clique sur la page !", err);
+                isPlaying = false;
+                processAudioQueue();
+            });
+        }
+
+        function playBase64Audio(base64Data) {
+            audioQueue.push(base64Data);
+            processAudioQueue();
+        }
 
         window.onload = function() {
             const brokerHost = window.location.hostname || "192.168.1.80";
@@ -58,7 +91,24 @@
             client.onMessageArrived = function (message) {
                 let container = document.getElementById("messages");
                 let time = new Date().toLocaleTimeString();
-                let html = `<div class="msg">[${time}] <span class="topic">${message.destinationName}</span> : <span class="payload">${escapeHtml(message.payloadString)}</span></div>`;
+                let topic = message.destinationName;
+                let payloadStr = message.payloadString;
+
+                // Interception spécifique pour l'audio du dashboard
+                if (topic === "natacha/dashboard/audio") {
+                    try {
+                        let audioJson = JSON.parse(payloadStr);
+                        if (audioJson.data) {
+                            playBase64Audio(audioJson.data);
+                        }
+                        // Affichage raccourci dans le journal pour éviter de polluer avec le long pavé Base64
+                        payloadStr = `🔊 [Fichier audio reçu : ${audioJson.filename || "audio.wav"}]`;
+                    } catch (e) {
+                        console.error("Erreur de décodage JSON audio :", e);
+                    }
+                }
+
+                let html = `<div class="msg">[${time}] <span class="topic">${topic}</span> : <span class="payload">${escapeHtml(payloadStr)}</span></div>`;
                 container.innerHTML += html;
                 container.scrollTop = container.scrollHeight;
             };
@@ -82,7 +132,7 @@
             connectMQTT();
         };
 
-        // Fonction pour envoyer le message sur le topic natacha/question
+        // Envoi de la question
         function sendQuestion() {
             let input = document.getElementById("question-input");
             let text = input.value.trim();
@@ -92,14 +142,12 @@
                 message.destinationName = "natacha/question";
                 client.send(message);
                 
-                // Vide le champ de saisie après l'envoi
                 input.value = "";
             } else if (!client || !client.isConnected()) {
                 alert("Erreur : Non connecté au broker MQTT !");
             }
         }
 
-        // Permet d'envoyer en appuyant sur la touche "Entrée"
         function checkEnter(event) {
             if (event.key === "Enter") {
                 sendQuestion();
