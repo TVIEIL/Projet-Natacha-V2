@@ -104,7 +104,7 @@ Le projet Natacha est développé et optimisé pour Ubuntu 24.04 LTS. L'utilisat
 
 🚀 Installation Rapide (Recommandé)
 
-Si votre système est prêt, vous pouvez installer automatiquement le module de votre choix (Oreille, Cerveau, Le Hub ou Bouche) grâce au script d'installation unifié. Ce script s'occupe de créer l'environnement Conda, d'installer les dépendances logiciels et librairies avec pip et de configurer le service systemd. "Le Hub" est le serveur de communication MQTT qui fait le lien entre les différentes machines du système. Le serveur de communication héberge également un serveur KIWIX avec un fichier .zim sur la physique.
+Si votre système est prêt, vous pouvez installer automatiquement le module de votre choix (Oreille, Cerveau, Le Hub ou La Bouche) grâce au script d'installation unifié. Ce script s'occupe de créer l'environnement Conda, d'installer les dépendances logiciels et librairies avec pip et de configurer le service systemd. "Le Hub" est le serveur de communication MQTT qui fait le lien entre les différentes machines du système. Le serveur de communication héberge également un serveur KIWIX avec un fichier .zim sur la physique.
 
 
 ```bash
