@@ -19,19 +19,20 @@
 # ==============================================================================
 
 
-import time
 import os
+import re
+import time
+import uuid
+import queue
+import wave
+import threading
+import subprocess
+import contextlib
+
 import torch
 import paho.mqtt.client as mqtt
-from TTS.api import TTS
 from dotenv import load_dotenv
-import subprocess
-import threading
-import queue
-import uuid
-import wave
-import contextlib
-import re
+from TTS.api import TTS
 
 START_TIME = time.time()
 processing_flag = False
