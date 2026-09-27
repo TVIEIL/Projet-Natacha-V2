@@ -190,6 +190,7 @@ listener 1883
 allow_anonymous true
 listener 9001
 protocol websockets
+max_packet_size 10485760
 EOF
         fi
 
