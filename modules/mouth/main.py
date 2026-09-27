@@ -34,6 +34,9 @@ import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 from TTS.api import TTS
 
+import numpy as np
+from scipy.io import wavfile
+
 START_TIME = time.time()
 processing_flag = False
 
@@ -56,6 +59,41 @@ class Config:
 
 os.makedirs(Config.DATA_IN_DIR, exist_ok=True)
 audio_queue = queue.Queue()
+
+
+def remove_pop(file_path, fade_in_ms=60, fade_out_ms=20):
+    """Applique un micro fondu en entrée (fade-in) et en sortie (fade-out)
+    pour supprimer les clics au début et à la fin du fichier WAV.
+    """
+    try:
+        sample_rate, data = wavfile.read(file_path)
+        total_samples = len(data)
+        
+        # 1. Traitement du fondu en entrée (Fade-in / Attaque)
+        fade_in_len = int(sample_rate * (fade_in_ms / 1000.0))
+        if total_samples > fade_in_len and fade_in_len > 0:
+            fade_in = np.linspace(0.0, 1.0, fade_in_len)
+            if data.ndim == 1:
+                data[:fade_in_len] = (data[:fade_in_len] * fade_in).astype(data.dtype)
+            else:
+                data[:fade_in_len, :] = (data[:fade_in_len, :] * fade_in[:, None]).astype(data.dtype)
+
+        # 2. Traitement du fondu en sortie (Fade-out / Chute)
+        fade_out_len = int(sample_rate * (fade_out_ms / 1000.0))
+        if total_samples > fade_out_len and fade_out_len > 0:
+            fade_out = np.linspace(1.0, 0.0, fade_out_len)
+            if data.ndim == 1:
+                data[-fade_out_len:] = (data[-fade_out_len:] * fade_out).astype(data.dtype)
+            else:
+                data[-fade_out_len:, :] = (data[-fade_out_len:, :] * fade_out[:, None]).astype(data.dtype)
+
+        # Réécriture du fichier corrigé
+        wavfile.write(file_path, sample_rate, data)
+        
+    except Exception as e:
+        print(f"⚠️ Erreur lors du nettoyage de l'audio ({file_path}): {e}")
+
+
 
 def sanitize_text_for_tts(text: str) -> str:
     # 1. Autorise uniquement :
@@ -87,6 +125,47 @@ def get_wav_duration(fname):
         return 0
 
 def worker_audio():
+    """Thread de lecture : Stream UDP vers le nœud Oreille via GStreamer."""
+    while True:
+        file_path = audio_queue.get()
+        if file_path is None:
+            break 
+        
+        try:
+            duree = get_wav_duration(file_path)
+            print(f"⏳ Durée : {duree:.2f}s. Envoi vers Oreille ({Config.OREILLE_IP})...")
+
+            # Pipeline UDP stabilisé :
+            # - audiorate garantit un flux temporellement régulier
+            # - sync=true force le respect de l'horloge temps réel
+            send_cmd = [
+                "gst-launch-1.0", "-q",
+                "filesrc", f"location={file_path}", "!",
+                "wavparse", "!",
+                "audioconvert", "!",
+                "audioresample", "!",
+                "audiorate", "!",  # Régule le débit pour éviter la perte de paquets au départ
+                "audio/x-raw,rate=22050,channels=1,format=S16LE", "!",
+                "udpsink", f"host={Config.OREILLE_IP}", "port=5000", "sync=true"
+            ]
+            
+            # Exécution directe sans shell=True
+            subprocess.run(send_cmd, check=True)
+            
+            # Pause de sécurité et nettoyage
+            time.sleep(0.2)
+            print("✨ Lecture terminée sur l'oreille. Prêt.")
+            
+        except Exception as e:
+            print(f"⚠️ Erreur lors du streaming : {e}")
+        finally:
+            if "traitement_en_cours.wav" not in file_path:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            
+            audio_queue.task_done()
+
+def OLD_worker_audio():
     """Thread de lecture : Stream vers l oreille via GStreamer."""
     while True:
         file_path = audio_queue.get()
@@ -142,8 +221,9 @@ def on_message(client, userdata, msg):
         print(f"\n--- Début génération : '{payload}' ---")
         filename = f"audio_{uuid.uuid4().hex}.wav"
         filepath = os.path.join(Config.DATA_IN_DIR, filename)
-        
-    clean_text = sanitize_text_for_tts(text)
+     
+    #clean_text = payload
+    clean_text = sanitize_text_for_tts(payload)
     
     tts.tts_to_file(
     text=clean_text,
@@ -156,6 +236,8 @@ def on_message(client, userdata, msg):
     # top_p=0.85,
     # gpt_cond_len=30,)
 
+    # Nettoyage de l'onde audio juste avant la mise en file d'attente
+    remove_pop(filepath)
 
     audio_queue.put(filepath)
 
@@ -225,4 +307,3 @@ try:
 except KeyboardInterrupt:
     print("\nArrêt...")
     audio_queue.put(None) # Signal pour arrêter le worker
-
