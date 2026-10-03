@@ -3,7 +3,7 @@
 Ce script prend en charge l'ensemble des ajustements réseau, les temporisations du cache apt-cacher-ng.
 Il faut ouvrir le pare-feu ufw 3142/tcp et la génération des fichiers de travail pour Ansible.
 
-Voici un script Bash complet et prêt à l'emploi. Il permet d'installer et de configurer automatiquement le serveur
+Ce script Bash complet est prêt à l'emploi. Il permet d'installer et de configurer automatiquement le serveur
 de cache apt-cacher-ng ainsi que l'environnement d'administration Ansible sur la machine maître, puis de préparer
 l'inventaire et le playbook de mise à jour.  
 
