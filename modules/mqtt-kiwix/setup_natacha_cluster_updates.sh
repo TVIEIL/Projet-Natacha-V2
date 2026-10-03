@@ -74,6 +74,7 @@ if [ ! -f "$HOSTS_FILE" ]; then
 192.168.1.90
 192.168.1.100
 192.168.1.110
+localhost ansible_connection=local
 
 [ubuntu_servers:vars]
 ansible_user=$LOGGED_USER
@@ -127,7 +128,7 @@ cat <<'EOF' > "$PLAYBOOK_FILE"
         post_reboot_delay: 30
         test_command: uptime
       when: reboot_required_file.stat.exists
-EOF
+EOF1111111
 chown "$LOGGED_USER:$LOGGED_USER" "$PLAYBOOK_FILE"
 echo -e "${GREEN}Playbook 'update.yml' créé.${NC}"
 
