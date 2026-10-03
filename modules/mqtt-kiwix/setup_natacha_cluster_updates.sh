@@ -127,7 +127,9 @@ cat <<'EOF' > "$PLAYBOOK_FILE"
         pre_reboot_delay: 0
         post_reboot_delay: 30
         test_command: uptime
-      when: reboot_required_file.stat.exists
+      when:
+        - reboot_required_file.stat.exists
+        - inventory_hostname != 'localhost'
 EOF1111111
 chown "$LOGGED_USER:$LOGGED_USER" "$PLAYBOOK_FILE"
 echo -e "${GREEN}Playbook 'update.yml' créé.${NC}"
