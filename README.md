@@ -77,6 +77,8 @@ https://youtube.com/watch?v=ivVGWKrNOFM&is=WevjTCej9jadv8qc
 
 ​Natacha - Dashboard : Interface de supervision et de monitoring temps réel de l'état de santé du cluster et des flux MQTT.
 
+http://192.168.1.80:8090/
+
 ![Nouveau Natacha Dashboard](assets/dashboard-natacha2.png)
 
 ​Serveur de Communication & Savoir : Nœud hébergeant le broker MQTT (`Mosquitto`) et le serveur de connaissances hors-ligne (`Kiwix`).
